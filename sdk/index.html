@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PulsePoint — Feel what your users feel</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #030712;
+      --surface: #0f172a;
+      --border: #1e293b;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --pink: #ec4899;
+      --purple: #a855f7;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND ── */
+    .bg-glow {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(168,85,247,0.12) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(236,72,153,0.12) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(99,102,241,0.05) 0%, transparent 70%);
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px; height: 64px;
+      background: rgba(3,7,18,0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px; font-weight: 700;
+      background: linear-gradient(90deg, #f9a8d4, #c084fc);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-logo-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, #ec4899, #a855f7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; -webkit-text-fill-color: initial;
+    }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a { font-size: 14px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: linear-gradient(135deg, #ec4899, #a855f7);
+      border: none; border-radius: 8px; color: #fff;
+      padding: 8px 20px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: all 0.2s;
+      text-decoration: none;
+    }
+    .nav-cta:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 120px 24px 80px;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(168,85,247,0.1);
+      border: 1px solid rgba(168,85,247,0.3);
+      border-radius: 100px; padding: 6px 16px;
+      font-size: 12px; font-weight: 600; color: #c084fc;
+      margin-bottom: 32px;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .hero-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #a855f7;
+      animation: pulseDot 2s infinite;
+    }
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(40px, 7vw, 80px);
+      font-weight: 700; line-height: 1.1;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #f1f5f9 0%, #c084fc 50%, #f9a8d4 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      font-size: clamp(16px, 2.5vw, 22px);
+      color: var(--muted); max-width: 600px;
+      line-height: 1.6; margin-bottom: 48px;
+    }
+    .hero-sub span { color: #c084fc; font-weight: 600; }
+    .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-bottom: 80px; }
+    .btn-primary {
+      background: linear-gradient(135deg, #ec4899, #a855f7);
+      border: none; border-radius: 12px; color: #fff;
+      padding: 14px 32px; font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: all 0.2s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(168,85,247,0.4); }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border); border-radius: 12px; color: var(--text);
+      padding: 14px 32px; font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: all 0.2s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-secondary:hover { border-color: #a855f7; color: #c084fc; }
+
+    /* ── HERO STATS ── */
+    .hero-stats {
+      display: flex; gap: 48px; flex-wrap: wrap; justify-content: center;
+      padding: 32px 48px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 36px; font-weight: 700;
+      background: linear-gradient(135deg, #ec4899, #a855f7);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* ── SECTION ── */
+    section {
+      position: relative; z-index: 1;
+      max-width: 1100px; margin: 0 auto;
+      padding: 80px 24px;
+    }
+    .section-badge {
+      font-size: 11px; font-weight: 700; color: #a855f7;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .section-sub { font-size: 16px; color: var(--muted); max-width: 560px; line-height: 1.6; margin-bottom: 48px; }
+
+    /* ── FEATURES GRID ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px;
+      transition: all 0.3s;
+    }
+    .feature-card:hover {
+      border-color: #334155;
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-bottom: 16px;
+    }
+    .feature-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .feature-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    /* ── HOW IT WORKS ── */
+    .steps { display: flex; flex-direction: column; gap: 24px; }
+    .step {
+      display: flex; gap: 24px; align-items: flex-start;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px;
+      transition: all 0.3s;
+    }
+    .step:hover { border-color: #334155; }
+    .step-num {
+      width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+      background: linear-gradient(135deg, #ec4899, #a855f7);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px; font-weight: 700; color: #fff;
+    }
+    .step-content h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .step-content p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .step-code {
+      margin-top: 12px;
+      background: #0a0f1e; border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 16px;
+      font-family: monospace; font-size: 13px; color: #a5b4fc;
+    }
+
+    /* ── COMPARISON ── */
+    .compare-table {
+      width: 100%; border-collapse: collapse;
+      background: var(--surface); border-radius: 16px; overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .compare-table th {
+      padding: 16px 20px; font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table th:first-child { text-align: left; color: var(--muted); }
+    .compare-table th.highlight {
+      background: linear-gradient(135deg, rgba(236,72,153,0.1), rgba(168,85,247,0.1));
+      color: #c084fc;
+    }
+    .compare-table td {
+      padding: 14px 20px; font-size: 14px;
+      border-bottom: 1px solid var(--border); text-align: center;
+    }
+    .compare-table td:first-child { text-align: left; color: var(--muted); }
+    .compare-table td.highlight { background: rgba(168,85,247,0.05); }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .check { color: #10b981; font-size: 16px; }
+    .cross { color: #475569; font-size: 16px; }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      position: relative; z-index: 1;
+      text-align: center; padding: 80px 24px 120px;
+    }
+    .cta-card {
+      max-width: 700px; margin: 0 auto;
+      background: linear-gradient(135deg, rgba(236,72,153,0.1), rgba(168,85,247,0.1));
+      border: 1px solid rgba(168,85,247,0.3);
+      border-radius: 24px; padding: 64px 48px;
+    }
+    .cta-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 700; margin-bottom: 16px;
+    }
+    .cta-sub { font-size: 16px; color: var(--muted); margin-bottom: 40px; line-height: 1.6; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 32px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+    }
+    footer p { font-size: 13px; color: var(--muted); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.6s ease forwards; }
+  </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-icon">⚡</div>
+    PulsePoint
+  </div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#compare">Compare</a>
+  </div>
+  <a href="test.html" class="nav-cta">Live Demo →</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">
+    <div class="hero-badge-dot"></div>
+    AI-Powered UX Intelligence
+  </div>
+
+  <h1 class="hero-title fade-up">
+    Feel what your<br>users feel
+  </h1>
+
+  <p class="hero-sub fade-up">
+    PulsePoint detects user frustration in <span>real-time</span>,
+    triggers intelligent feedback, and uses <span>Groq + Llama 3</span>
+    to tell you exactly what to fix.
+  </p>
+
+  <div class="hero-buttons fade-up">
+    <a href="test.html" class="btn-primary">🚀 Live Demo</a>
+    <a href="https://github.com/kapseabhijeet20-stack/PulsePoint" target="_blank" class="btn-secondary">⭐ GitHub</a>
+  </div>
+
+  <div class="hero-stats fade-up">
+    <div class="stat">
+      <div class="stat-num">1</div>
+      <div class="stat-label">Script tag to install</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">&lt;3s</div>
+      <div class="stat-label">Frustration detection time</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3</div>
+      <div class="stat-label">AI signals tracked</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Insights generated</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-badge">Features</div>
+  <h2 class="section-title">Everything you need to<br>understand your users</h2>
+  <p class="section-sub">PulsePoint goes beyond analytics. It feels what your users feel and tells you how to fix it.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(239,68,68,0.1);">🖱</div>
+      <div class="feature-title">FrustrationIQ™ Detection</div>
+      <div class="feature-desc">Detects rage clicks, inactivity drops, and hesitation patterns. Combines them into a real-time frustration score.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(168,85,247,0.1);">💬</div>
+      <div class="feature-title">ContextSnap™ Feedback</div>
+      <div class="feature-desc">Smart feedback triggers that appear only at the moment of pain — not random popups. Context-aware questions every time.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(236,72,153,0.1);">🤖</div>
+      <div class="feature-title">InsightGPT™ Analysis</div>
+      <div class="feature-desc">Powered by Groq + Llama 3. Reads all sessions and generates plain English pain point reports with prioritized fixes.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(245,158,11,0.1);">😊</div>
+      <div class="feature-title">Live Sentiment Engine</div>
+      <div class="feature-desc">Analyzes feedback text in real-time as users type. Shows positive, neutral, or negative sentiment instantly.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(59,130,246,0.1);">🔴</div>
+      <div class="feature-title">Live Alert System</div>
+      <div class="feature-desc">Real-time dashboard alerts when frustration is detected. Your team knows about critical UX issues instantly.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background: rgba(16,185,129,0.1);">🔧</div>
+      <div class="feature-title">Auto Fix Suggestions</div>
+      <div class="feature-desc">AI generates prioritized fix recommendations — High, Medium, Low priority. Your sprint backlog writes itself.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" style="background: var(--surface); max-width: 100%; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div style="max-width: 1100px; margin: 0 auto; padding: 80px 24px;">
+    <div class="section-badge">How it works</div>
+    <h2 class="section-title">Up and running in<br>60 seconds</h2>
+    <p class="section-sub">No complex setup. No SDK configuration. Just one script tag.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Add one script tag</h3>
+          <p>Drop PulsePoint onto any website. It starts tracking immediately — no configuration needed.</p>
+          <div class="step-code">&lt;script src="pulsepoint.js"&gt;&lt;/script&gt;</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>PulsePoint watches silently</h3>
+          <p>Rage clicks, inactivity, hesitation — all detected automatically. A frustration score is calculated in real-time.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Smart feedback triggers at the right moment</h3>
+          <p>When frustration score crosses the threshold, a contextual feedback widget appears — with a smart question based on what triggered it.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>AI generates your fix report</h3>
+          <p>One click on InsightGPT™ and Llama 3 reads all sessions, feedback, and behavior — then tells you exactly what to fix and in what order.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section id="compare">
+  <div class="section-badge">Comparison</div>
+  <h2 class="section-title">PulsePoint vs the rest</h2>
+  <p class="section-sub">Other tools show you what happened. PulsePoint tells you why and how to fix it.</p>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Hotjar</th>
+        <th>Mixpanel</th>
+        <th class="highlight">PulsePoint ⚡</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Real-time frustration detection</td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td class="highlight"><span class="check">✓</span></td>
+      </tr>
+      <tr>
+        <td>Smart feedback triggers</td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td class="highlight"><span class="check">✓</span></td>
+      </tr>
+      <tr>
+        <td>Live sentiment analysis</td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td class="highlight"><span class="check">✓</span></td>
+      </tr>
+      <tr>
+        <td>AI pain point summary</td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td class="highlight"><span class="check">✓</span></td>
+      </tr>
+      <tr>
+        <td>Auto fix suggestions</td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td class="highlight"><span class="check">✓</span></td>
+      </tr>
+      <tr>
+        <td>Live alert system</td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td class="highlight"><span class="check">✓</span></td>
+      </tr>
+      <tr>
+        <td>Setup time</td>
+        <td>Hours</td>
+        <td>Days</td>
+        <td class="highlight" style="color: #10b981; font-weight: 700;">1 script tag</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="cta-card">
+    <h2 class="cta-title">Ready to feel what<br>your users feel?</h2>
+    <p class="cta-sub">Add one script tag and start detecting frustration in real-time. No credit card. No complex setup.</p>
+    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+      <a href="test.html" class="btn-primary">🚀 Try Live Demo</a>
+      <a href="https://github.com/kapseabhijeet20-stack/PulsePoint" target="_blank" class="btn-secondary">⭐ Star on GitHub</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="nav-logo" style="margin-bottom: 6px;">
+      <div class="nav-logo-icon">⚡</div>
+      PulsePoint
+    </div>
+    <p>"Feel what your users feel — before they leave."</p>
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/kapseabhijeet20-stack/PulsePoint" target="_blank">GitHub</a>
+    <a href="test.html">Live Demo</a>
+    <p style="color: #334155;">Built by Abhijeet Kapse & Paramjyot Singh Kalha</p>
+  </div>
+</footer>
+
+</body>
+</html>
